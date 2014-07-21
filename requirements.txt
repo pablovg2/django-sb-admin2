@@ -1,0 +1,2 @@
+django-bootstrap3
+six
