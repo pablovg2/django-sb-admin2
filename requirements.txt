@@ -1,2 +1,4 @@
-django-bootstrap3
-six
+django-bootstrap3==4.8.2
+Django==1.6.5
+six==1.7.3
+
