@@ -1,5 +1,6 @@
 from django import template
 import six
+from ..html import render_tag, render_fa_icon,render_bs_icon, render_panel
 
 register = template.Library()
 loadjstoo = [False,False,False]
@@ -52,15 +53,24 @@ def sb_admin_loadcss(datatables=None,morris=None,socialbuttons=None,timeline=Non
 	'''
 
 @register.simple_tag
-def sb_panel(ptype="default",title="Default Panel",text=None,footer=None):
-	if not isinstance(ptype,six.string_types):
-		raise TemplateSyntaxError("You must pass a string to type parameter!")
-	header = '<div class="panel-heading"> {0} </div>'.format(title if isinstance(title,six.string_types) else "")
-	content = '<div class="panel-body"> {0} </div>'.format(text if isinstance(text,six.string_types) else "")
-	pfooter = '<div class="panel-footer"> {0} </div>'.format(footer if isinstance(footer,six.string_types) else "")
-	return '<div class="panel panel-{ptype}">{header} {content} {pfooter} </div>'.format(
-		ptype=ptype,
-		header=header,
-		content=content,
-		pfooter=pfooter
-		)	
+def sb_panel(ptype="default",title="Default Panel",text='',footer=''):
+	return render_panel(ptype,title,text,footer)
+
+@register.simple_tag
+def sb_panel_notify(content,icon,iconsize,iconmode,ptype="primary",comment="View Details",link="#"):
+	icon = render_tag("div",{"class":"col-xs-3"},sb_icon(icon=icon,size=iconsize,mode=iconmode))
+	content = render_tag("div",{"class":"col-xs-9 text-right"},content)
+	header = render_tag("div",{"class":"row"},icon+" "+content) # don't disturb render_tag when copy-paste is enough
+	comment = render_tag("span",{"class":"pull-left"},comment) + '<span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span><div class="clearfix"></div>'
+	footer = render_tag("a",{"href":link if isinstance(link,six.string_types) else "#"},comment)
+	import pdb; pdb.set_trace()
+	return sb_panel(ptype,header,None,footer)
+@register.simple_tag
+def sb_icon(icon,size="",fw=False,li=False,border=False,pull="",spin="",rotate="",inverse=False,stack=0,mode="fa"):
+	if mode == "fa":
+		return render_fa_icon(icon,size,fw,li,border,pull,spin,rotate,inverse,stack)
+	elif mode == "bs":
+		return render_bs_icon(icon)
+	else:
+		raise Exception("mode must be 'fa' or 'bs'")
+
