@@ -1,7 +1,9 @@
 from django import template
 import six
 from ..html import render_tag, render_fa_icon,render_bs_icon, render_panel
-
+from ..helper import return_numer_and_title, raise_an_exception
+from tag_parser.basetags import BaseNode
+from tag_parser import template_tag
 register = template.Library()
 loadjstoo = [False,False,False]
 
@@ -63,7 +65,6 @@ def sb_panel_notify(content,icon,iconsize,iconmode,ptype="primary",comment="View
 	header = render_tag("div",{"class":"row"},icon+" "+content) # don't disturb render_tag when copy-paste is enough
 	comment = render_tag("span",{"class":"pull-left"},comment) + '<span class="pull-right"><i class="fa fa-arrow-circle-right"></i></span><div class="clearfix"></div>'
 	footer = render_tag("a",{"href":link if isinstance(link,six.string_types) else "#"},comment)
-	import pdb; pdb.set_trace()
 	return sb_panel(ptype,header,None,footer)
 @register.simple_tag
 def sb_icon(icon,size="",fw=False,li=False,border=False,pull="",spin="",rotate="",inverse=False,stack=0,mode="fa"):
@@ -74,3 +75,28 @@ def sb_icon(icon,size="",fw=False,li=False,border=False,pull="",spin="",rotate="
 	else:
 		raise Exception("mode must be 'fa' or 'bs'")
 
+@template_tag(register, 'col_panel_group')
+class CollapsiblePanelGroup(BaseNode):
+    allowed_kwargs = ('title','number','istabs')
+    endtagname = "endgrouppanel"
+    def render_tag(self, context, *tag_args, **tag_kwargs):
+    	number,title = return_numer_and_title(**tag_kwargs)
+    	starter = '<div class="panel panel-default"><div class="panel-heading">{title}</div><div class="panel-body"><div class="panel-group" id="accordion{num}">'.format(title=title,num=number)
+    	if tag_kwargs.get('istabs'):
+    		starter = '<div class="panel panel-default"><div class="panel-heading">{title}</div><div class="panel-body">'.format(title=title)
+    	return starter + self.nodelist.render(context) + '</div></div></div>'
+
+@template_tag(register, 'col_panel')
+class CollapsiblePanel(BaseNode):
+	allowed_kwargs = ('title','number','groupnumber')
+	endtagname = 'endcolpanel'	
+
+	def render_tag(self, context, *tag_args, **tag_kwargs):
+		number, title = return_numer_and_title(**tag_kwargs)
+		import pdb; pdb.set_trace()
+		groupnumber = str(tag_kwargs.get('groupnumber')) if isinstance(tag_kwargs.get('groupnumber'), int) else raise_an_exception("You must pass the groupnumber argoument!")
+		starter = '<div class="panel panel-default"><div class="panel-heading"><h4 class="panel-title"><a data-toggle="collapse" data-parent="#accordion{group}" href="#collapse{num}">{title}</a></h4></div><div id="collapse{num}" class="panel-collapse collapse in"><div class="panel-body">'.format(
+			title=title,
+			group=groupnumber,
+			num=number)
+		return starter + self.nodelist.render(context) + '</div></div></div>'

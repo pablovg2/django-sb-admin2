@@ -44,5 +44,5 @@ def render_fa_icon(icon,size="",fw=False,li=False,border=False,pull="",spin="",r
 def render_bs_icon(icon):
 	if not isinstance(icon,six.string_types):
 		raise Exception("icon must be a string")
-	import pdb; pdb.set_trace() 
 	return render_tag("span",{"class":"glyphicon glyphicon-{0}".format(icon)},"")
+
