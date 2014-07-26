@@ -1,7 +1,7 @@
 from django import template
 import six
 from ..html import render_tag, render_fa_icon,render_bs_icon, render_panel
-from ..helper import return_numer_and_title, raise_an_exception
+from ..helper import return_numer_and_title, raise_an_exception,not_blank_and_string
 from tag_parser.basetags import BaseNode
 from tag_parser import template_tag
 register = template.Library()
@@ -77,14 +77,57 @@ def sb_icon(icon,size="",fw=False,li=False,border=False,pull="",spin="",rotate="
 
 @template_tag(register, 'col_panel_group')
 class CollapsiblePanelGroup(BaseNode):
-    allowed_kwargs = ('title','number','istabs')
+    allowed_kwargs = ('title','number')
     endtagname = "endgrouppanel"
     def render_tag(self, context, *tag_args, **tag_kwargs):
     	number,title = return_numer_and_title(**tag_kwargs)
     	starter = '<div class="panel panel-default"><div class="panel-heading">{title}</div><div class="panel-body"><div class="panel-group" id="accordion{num}">'.format(title=title,num=number)
-    	if tag_kwargs.get('istabs'):
-    		starter = '<div class="panel panel-default"><div class="panel-heading">{title}</div><div class="panel-body">'.format(title=title)
     	return starter + self.nodelist.render(context) + '</div></div></div>'
+
+@template_tag(register,'standard_panel')
+class StandardPanel(BaseNode):
+	allowed_kwargs = ('title','footer','ptype')
+	endtagname = "endstandardpan"
+	def render_tag(self, context, *tag_args, **tag_kwargs):
+		title = tag_kwargs.get("title","")
+		footer = tag_kwargs.get("footer","")
+		ptype = tag_kwargs.get("ptype","default")
+		output = starter = '<div class="panel panel-{ptype}"><div class="panel-heading">{title}</div><div class="panel-body">'.format(title=title,ptype=ptype)
+		return output + self.nodelist.render(context) + "</div>"+render_tag(attrs={"class":"panel-footer"},content=footer)+"</div>"
+@register.simple_tag(name='basic_tabs')
+def sb_basic_tabs(tabname,tabid,first=None):
+	tabname = not_blank_and_string(tabname,"tabname")
+	tabid = not_blank_and_string(tabid,"tabid")
+	output = render_tag("a",{"href":"#"+tabid,"data-toggle":"tab"},tabname)
+	output = render_tag("li",{"class":"active" if first else ""},output)
+	return output
+@template_tag(register,'openul')
+class OpenUl(BaseNode):
+	allowed_kwargs = ('pills','tabs')
+	endtagname = "endul"
+	def render_tag(self, context, *tag_args, **tag_kwargs):
+		pills = tag_kwargs.get("pills",False)
+		tabs = tag_kwargs.get("tabs",False)
+		if pills and tabs:
+			raise_an_exception("pills and tabs can't be either True")
+		return render_tag("ul",{"class":"nav nav-"+("pills" if pills else "")+("tabs" if tabs else "")},self.nodelist.render(context))
+
+
+
+@template_tag(register,'tab_content')
+class TabContent(BaseNode):
+	allowed_kwargs = ("ID","title","first","last")
+	endtagname = "endtabs"
+
+	def render_tag(self, context, *tag_args, **tag_kwargs):
+		ID = not_blank_and_string(tag_kwargs["ID"],"ID")
+		title = tag_kwargs.get("title","Title")
+		first = tag_kwargs.get("first")
+		last = tag_kwargs.get("last")
+		output = '<div class="tab-content">' if first else ""
+		output += '<div class="tab-pane fade {active}" id="{ID}"><h4>{title}</h4>'.format(ID=ID,active="active in" if first else "",title=title)
+		output += self.nodelist.render(context) + "</div>" +("</div>" if last else "")
+		return output
 
 @template_tag(register, 'col_panel')
 class CollapsiblePanel(BaseNode):

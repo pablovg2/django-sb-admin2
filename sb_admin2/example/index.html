@@ -15,6 +15,23 @@
 {%bootstrap_css%}
 {% sb_admin_loadcss allyes=1 %}
 
+{%standard_panel title="ciao"%} 
+{%openul pills=1 %}
+
+{%for tab in tabs%}
+{%with tabid=tab.tabname|add:" "|add:tab.tabtitle|slugify %}
+    {%basic_tabs tabname=tab.tabname tabid=tabid first=forloop.first %}
+{%endwith%}
+{%endfor%}
+
+{%endul%}
+{%for tab in tabs%}
+{%with tabid=tab.tabname|add:" "|add:tab.tabtitle|slugify %}
+{%tab_content title=tab.tabtitle ID=tabid first=forloop.first last=forloop.last %}{{ tab.content }}{%endtabs%} 
+{%endwith%}
+{%endfor%}
+{%endstandardpan%}
+
 </head>
 
 <body>
@@ -360,11 +377,7 @@
             <div class="row">
                 <div class="col-lg-12">
                     <h1 class="page-header">Dashboard</h1>
-                    {% col_panel_group title="ciao" number=1%} 
-    {%col_panel title="ciao2" groupnumber=1 %}
-        ciao ciao 
-    {%endcolpanel%} 
-{%endgrouppanel%}
+ 
                 </div>
                 <!-- /.col-lg-12 -->
             </div>

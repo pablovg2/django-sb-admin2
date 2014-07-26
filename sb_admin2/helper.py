@@ -7,3 +7,9 @@ def return_numer_and_title(**tag_kwargs):
 
 def raise_an_exception(text):
 	raise Exception(text)
+
+def not_blank_and_string(variable,key="variable"):
+	if not variable or not isinstance(variable,six.string_types):
+		raise_an_exception(key+" must be a string and not blank")
+	else:
+		return variable
